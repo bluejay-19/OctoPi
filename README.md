@@ -30,11 +30,17 @@ free with no account required.
 
 ## Project Structure
 OctoPi/
+
 ├── app.py          # Landing page
+
 ├── pages/
+
 │   └── study.py   # Main study dashboard
+
 ├── requirements.txt
+
 ├── .env            # Not uploaded to GitHub
+
 └── .gitignore
 
 ## Notes
