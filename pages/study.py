@@ -64,19 +64,25 @@ def get_img_base64(path):
     except:
         return ""
 
-def ask_octo(prompt, system_extra=""):
+def ask_octo(prompt, system_extra="", retries=2):
     system = f"""You are Octo, a cheerful and friendly octopus study buddy!
-    Help students understand their notes in a fun and encouraging way.
-    Occasionally make a light octopus pun! Keep answers clear and student friendly.
-    {system_extra}"""
-    response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[
-            {"role": "system", "content": system},
-            {"role": "user", "content": prompt}
-        ]
-    )
-    return response.choices[0].message.content
+Help students understand their notes in a fun and encouraging way.
+Occasionally make a light octopus pun! Keep answers clear and student friendly.
+{system_extra}"""
+    for attempt in range(retries):
+        try:
+            response = client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": prompt}
+                ]
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            if attempt == retries - 1:
+                raise e
+    return ""
 
 def extract_pdf(file):
     reader = PyPDF2.PdfReader(file)
@@ -488,81 +494,77 @@ elif st.session_state.page == "quiz":
     else:
         if not st.session_state.quiz:
             num = 5
-            st.markdown(f"<h3 style='color:{text_color};'>Choose your question types:</h3>",
-                        unsafe_allow_html=True)
-            st.markdown(f"<p style='color:{sub_color}; font-size:13px;'>Octo will generate 5 questions for you 🐙</p>",
-                        unsafe_allow_html=True)
-
-            mc = st.checkbox("Multiple choice", value=False)
-            tf = st.checkbox("True / False", value=False)
-            written = st.checkbox("Written answer", value=False)
+            st.markdown(f"""
+                <div style='background:{card_bg}; border:1px solid {card_border};
+                border-radius:12px; padding:20px; backdrop-filter:blur(8px);'>
+                    <p style='color:{text_color}; font-size:16px; font-weight:600; margin:0 0 8px;'>
+                    Ready to test your knowledge? 🐙</p>
+                    <p style='color:{sub_color}; font-size:13px; margin:0;'>
+                    Octo will generate 5 multiple choice questions from your notes.</p>
+                </div>
+            """, unsafe_allow_html=True)
 
             st.markdown("<br>", unsafe_allow_html=True)
             _, gen_col, _ = st.columns([1, 2, 1])
             with gen_col:
-                generate = st.button("🚀 Generate Quiz", use_container_width=True)
-
-            if generate:
-                types = []
-                if mc: types.append("mc")
-                if tf: types.append("tf")
-                if written: types.append("written")
-
-                if not types:
-                    st.warning("Please select at least one question type!")
-                else:
+                if st.button("🚀 Generate Quiz", use_container_width=True):
                     with st.spinner("Octo is writing your quiz... 🐙"):
-                        type_labels = []
-                        format_parts = []
-                        if "mc" in types:
-                            type_labels.append("multiple choice")
-                            format_parts.append('{"type":"mc","question":"...","options":["A. ...","B. ...","C. ...","D. ..."],"answer":"A"}')
-                        if "tf" in types:
-                            type_labels.append("true or false")
-                            format_parts.append('{"type":"tf","question":"...","answer":"True"}')
-                        if "written" in types:
-                            type_labels.append("written answer")
-                            format_parts.append('{"type":"written","question":"...","answer":"..."}')
-
                         prompt = f"""You are a quiz generator. Output ONLY a JSON array, nothing else.
+            Generate exactly 5 multiple choice questions from the content below.
 
-Generate {num} questions about the content below.
-Types to use: {', '.join(type_labels)}
+            Each question must follow this exact format:
+            {{"type":"mc","question":"question text here","options":["A. option","B. option","C. option","D. option"],"answer":"A"}}
 
-Rules:
-- Return ONLY the JSON array, starting with [ and ending with ]
-- No markdown, no code fences, no explanation
-- Each question must have "type", "question", and "answer" fields
-- For mc type also include "options": ["A. ...", "B. ...", "C. ...", "D. ..."]
-
-Formats:
-{chr(10).join(format_parts)}
+            Rules:
+            - Return ONLY the JSON array starting with [ and ending with ]
+            - No markdown, no explanation, nothing else
+            - answer field must be just the letter: A, B, C, or D
 
 Content:
 {st.session_state.notes[:1500]}"""
 
                         raw = ask_octo(
                             prompt,
-                            system_extra="You output only raw JSON arrays. Never use markdown. Never add explanation. Start your response with [ and end with ]."
+                            system_extra="Return only a raw JSON array. Start with [ and end with ]. No markdown, no explanation."
                         )
-
                         try:
                             cleaned = clean_json(raw)
                             parsed = json.loads(cleaned)
                             valid = [q for q in parsed
-                                    if "type" in q and "question" in q and "answer" in q]
-                            if valid:
-                                st.session_state.quiz = valid
-                                st.session_state.quiz_index = 0
-                                st.session_state.quiz_score = 0
-                                st.session_state.answer_submitted = False
-                                st.session_state.last_feedback = ""
-                                st.session_state.last_correct = None
-                                st.rerun()
-                            else:
-                                st.error("Octo had trouble making the quiz. Try again!")
+                                    if "type" in q and "question" in q
+                                    and "answer" in q and "options" in q]
+                            if not valid:
+                                raise ValueError("empty")
+                            st.session_state.quiz = valid
+                            st.session_state.quiz_index = 0
+                            st.session_state.quiz_score = 0
+                            st.session_state.answer_submitted = False
+                            st.session_state.last_feedback = ""
+                            st.session_state.last_correct = None
+                            st.rerun()
                         except:
-                            st.error("Octo had trouble making the quiz. Try again!")
+                            try:
+                                raw2 = ask_octo(
+                                    prompt,
+                                    system_extra="Return only a raw JSON array. Start with [ and end with ]. No markdown, no explanation."
+                                )
+                                cleaned2 = clean_json(raw2)
+                                parsed2 = json.loads(cleaned2)
+                                valid2 = [q for q in parsed2
+                                        if "type" in q and "question" in q
+                                        and "answer" in q and "options" in q]
+                                if valid2:
+                                    st.session_state.quiz = valid2
+                                    st.session_state.quiz_index = 0
+                                    st.session_state.quiz_score = 0
+                                    st.session_state.answer_submitted = False
+                                    st.session_state.last_feedback = ""
+                                    st.session_state.last_correct = None
+                                    st.rerun()
+                                else:
+                                    st.error("Octo had trouble making the quiz. Try again!")
+                            except:
+                                st.warning("Octo is still warming up! Click Generate again and he'll be ready")
         else:
             quiz = st.session_state.quiz
             idx = st.session_state.quiz_index
