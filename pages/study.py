@@ -399,7 +399,12 @@ if st.session_state.page == "chat":
         prompt = f"Here are the student's notes:\n{st.session_state.notes}\n\nStudent asks: {question}" \
             if st.session_state.notes else question
         with st.spinner("Octo is thinking... 🐙"):
-            answer = ask_octo(prompt)
+            # Rate limit handling 
+            try:
+                answer = ask_octo(prompt)
+            except Exception as e: 
+                answer = "🐙 Oops! Octo is a bit overwhelmed right now. Try again in a moment!"
+
         st.session_state.messages.append({"role": "assistant", "content": answer})
         st.session_state.input_key += 1
         st.rerun()
