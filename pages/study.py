@@ -84,6 +84,7 @@ Occasionally make a light octopus pun! Keep answers clear and student friendly.
                 raise e
     return ""
 
+@st.cache_data      # Caching for repeated API calls 
 def extract_pdf(file):
     reader = PyPDF2.PdfReader(file)
     text = ""
@@ -394,20 +395,26 @@ if st.session_state.page == "chat":
     with col2:
         send = st.button("Send 🌊", use_container_width=True)
 
-    if send and question:
-        st.session_state.messages.append({"role": "user", "content": question})
-        prompt = f"Here are the student's notes:\n{st.session_state.notes}\n\nStudent asks: {question}" \
-            if st.session_state.notes else question
-        with st.spinner("Octo is thinking... 🐙"):
-            # Rate limit handling 
-            try:
-                answer = ask_octo(prompt)
-            except Exception as e: 
-                answer = "🐙 Oops! Octo is a bit overwhelmed right now. Try again in a moment!"
+    if send and question:               # Prevents empty sends 
+        # Input validation - character limit check
+        if len(question.strip()):
+            st.warning("Please type a proper question for Octo! 🐙")
+        elif len(question) > 2000:
+            st.warning("Not to be a downer but that's a bit long! Keep your question under 2000 characters")
+        else: 
+            st.session_state.messages.append({"role": "user", "content": question})
+            prompt = f"Here are the student's notes:\n{st.session_state.notes}\n\nStudent asks: {question}" \
+                if st.session_state.notes else question
+            with st.spinner("Octo is thinking... 🐙"):
+                # Rate limit handling 
+                try:
+                    answer = ask_octo(prompt)
+                except Exception as e: 
+                    answer = "🐙 Oops! Octo is a bit overwhelmed right now. Try again in a moment!"
 
-        st.session_state.messages.append({"role": "assistant", "content": answer})
-        st.session_state.input_key += 1
-        st.rerun()
+            st.session_state.messages.append({"role": "assistant", "content": answer})
+            st.session_state.input_key += 1
+            st.rerun()
 
 # ── FLASHCARDS PAGE ──
 elif st.session_state.page == "flashcards":
