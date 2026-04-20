@@ -55,7 +55,7 @@ sidebar_bg             = "#0a2744"
 input_bg               = "rgba(255,255,255,0.06)"
 btn_bg                 = "rgba(255,255,255,0.08)"
 btn_hover              = "rgba(255,255,255,0.15)"
-answer_card_bg         = "rgba(20,80,55,0,0.85)"
+answer_card_bg         = "rgba(20,80,55,0.85)"
 
 def get_img_base64(path):
     try:
@@ -402,7 +402,7 @@ elif st.session_state.page == "flashcards":
         with col_btn:
             if st.button("✨ Generate Flashcards"):
                 with st.spinner("Octo is making your flashcards... 🐙"):
-                    prompt = f"""Generate exactly 8 flashcards from these notes.
+                    prompt = f"""Generate exactly 10 flashcards from these notes.
 Return ONLY a JSON array. No markdown, no explanation, no extra text.
 Each item must follow this exact format:
 {{"front": "question or term here", "back": "answer or definition here"}}
@@ -487,67 +487,82 @@ elif st.session_state.page == "quiz":
         st.warning("Please upload a PDF or paste your notes in the Chat page first!")
     else:
         if not st.session_state.quiz:
+            num = 5
             st.markdown(f"<h3 style='color:{text_color};'>Choose your question types:</h3>",
                         unsafe_allow_html=True)
+            st.markdown(f"<p style='color:{sub_color}; font-size:13px;'>Octo will generate 5 questions for you 🐙</p>",
+                        unsafe_allow_html=True)
+
             mc = st.checkbox("Multiple choice", value=False)
             tf = st.checkbox("True / False", value=False)
             written = st.checkbox("Written answer", value=False)
-            num = st.slider("How many questions?", 3, 8, 4)
 
+            st.markdown("<br>", unsafe_allow_html=True)
             _, gen_col, _ = st.columns([1, 2, 1])
             with gen_col:
-                if st.button("🚀 Generate Quiz", use_container_width=True):
-                    types = []
-                    if mc: types.append("mc")
-                    if tf: types.append("tf")
-                    if written: types.append("written")
+                generate = st.button("🚀 Generate Quiz", use_container_width=True)
 
-                    if not types:
-                        st.warning("Please select at least one question type!")
-                    else:
-                        with st.spinner("Octo is writing your quiz... 🐙"):
-                            type_labels = []
-                            format_parts = []
-                            if "mc" in types:
-                                type_labels.append("multiple choice")
-                                format_parts.append('{"type":"mc","question":"...","options":["A. ...","B. ...","C. ...","D. ..."],"answer":"A"}')
-                            if "tf" in types:
-                                type_labels.append("true or false")
-                                format_parts.append('{"type":"tf","question":"...","answer":"True"}')
-                            if "written" in types:
-                                type_labels.append("written answer")
-                                format_parts.append('{"type":"written","question":"...","answer":"..."}')
+            if generate:
+                types = []
+                if mc: types.append("mc")
+                if tf: types.append("tf")
+                if written: types.append("written")
 
-                            prompt = f"""Generate exactly {num} quiz questions from the notes below.
-Use these question types: {', '.join(type_labels)}.
-Spread the types as evenly as possible across all {num} questions.
-Return ONLY a JSON array with exactly {num} items. No markdown, no explanation.
-Allowed formats:
+                if not types:
+                    st.warning("Please select at least one question type!")
+                else:
+                    with st.spinner("Octo is writing your quiz... 🐙"):
+                        type_labels = []
+                        format_parts = []
+                        if "mc" in types:
+                            type_labels.append("multiple choice")
+                            format_parts.append('{"type":"mc","question":"...","options":["A. ...","B. ...","C. ...","D. ..."],"answer":"A"}')
+                        if "tf" in types:
+                            type_labels.append("true or false")
+                            format_parts.append('{"type":"tf","question":"...","answer":"True"}')
+                        if "written" in types:
+                            type_labels.append("written answer")
+                            format_parts.append('{"type":"written","question":"...","answer":"..."}')
+
+                        prompt = f"""You are a quiz generator. Output ONLY a JSON array, nothing else.
+
+Generate {num} questions about the content below.
+Types to use: {', '.join(type_labels)}
+
+Rules:
+- Return ONLY the JSON array, starting with [ and ending with ]
+- No markdown, no code fences, no explanation
+- Each question must have "type", "question", and "answer" fields
+- For mc type also include "options": ["A. ...", "B. ...", "C. ...", "D. ..."]
+
+Formats:
 {chr(10).join(format_parts)}
 
-Notes:
-{st.session_state.notes[:3000]}"""
+Content:
+{st.session_state.notes[:1500]}"""
 
-                            raw = ask_octo(prompt,
-                                system_extra=f"Return only a valid JSON array with exactly {num} objects. No markdown, no extra text.")
+                        raw = ask_octo(
+                            prompt,
+                            system_extra="You output only raw JSON arrays. Never use markdown. Never add explanation. Start your response with [ and end with ]."
+                        )
 
-                            try:
-                                cleaned = clean_json(raw)
-                                parsed = json.loads(cleaned)
-                                valid = [q for q in parsed
-                                        if "type" in q and "question" in q and "answer" in q]
-                                if valid:
-                                    st.session_state.quiz = valid
-                                    st.session_state.quiz_index = 0
-                                    st.session_state.quiz_score = 0
-                                    st.session_state.answer_submitted = False
-                                    st.session_state.last_feedback = ""
-                                    st.session_state.last_correct = None
-                                    st.rerun()
-                                else:
-                                    st.error("Octo had trouble making the quiz. Try again!")
-                            except:
+                        try:
+                            cleaned = clean_json(raw)
+                            parsed = json.loads(cleaned)
+                            valid = [q for q in parsed
+                                    if "type" in q and "question" in q and "answer" in q]
+                            if valid:
+                                st.session_state.quiz = valid
+                                st.session_state.quiz_index = 0
+                                st.session_state.quiz_score = 0
+                                st.session_state.answer_submitted = False
+                                st.session_state.last_feedback = ""
+                                st.session_state.last_correct = None
+                                st.rerun()
+                            else:
                                 st.error("Octo had trouble making the quiz. Try again!")
+                        except:
+                            st.error("Octo had trouble making the quiz. Try again!")
         else:
             quiz = st.session_state.quiz
             idx = st.session_state.quiz_index
