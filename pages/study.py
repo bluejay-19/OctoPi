@@ -16,8 +16,6 @@ st.set_page_config(
 )
 
 # Session state setup
-if "dark_mode" not in st.session_state:
-    st.session_state.dark_mode = True
 if "page" not in st.session_state:
     st.session_state.page = "chat"
 if "notes" not in st.session_state:
@@ -45,31 +43,19 @@ if "last_correct" not in st.session_state:
 if "input_key" not in st.session_state:
     st.session_state.input_key = 0
 
-dark = st.session_state.dark_mode
 
 # Colour system
-if dark:
-    bg_top, bg_mid, bg_bot = "#061a2e", "#0a2f52", "#0e4a7a"
-    text_color             = "#E8F4FD"
-    sub_color              = "#90b8d8"
-    card_bg                = "rgba(255,255,255,0.07)"
-    card_border            = "rgba(255,255,255,0.12)"
-    sidebar_bg             = "#0a2744"
-    input_bg               = "rgba(255,255,255,0.06)"
-    btn_bg                 = "rgba(255,255,255,0.08)"
-    btn_hover              = "rgba(255,255,255,0.15)"
-    toggle_label           = "☀️"
-else:
-    bg_top, bg_mid, bg_bot = "#a8d8ea", "#74b9e0", "#4a9cc7"
-    text_color             = "#0a2744"
-    sub_color              = "#1a4a6e"
-    card_bg                = "rgba(255,255,255,0.5)"
-    card_border            = "rgba(0,40,80,0.15)"
-    sidebar_bg             = "rgba(168,216,234,0.95)"
-    input_bg               = "rgba(255,255,255,0.6)"
-    btn_bg                 = "rgba(255,255,255,0.4)"
-    btn_hover              = "rgba(255,255,255,0.7)"
-    toggle_label           = "🌙"
+
+bg_top, bg_mid, bg_bot = "#061a2e", "#0a2f52", "#0e4a7a"
+text_color             = "#E8F4FD"
+sub_color              = "#90b8d8"
+card_bg                = "rgba(255,255,255,0.07)"
+card_border            = "rgba(255,255,255,0.12)"
+sidebar_bg             = "#0a2744"
+input_bg               = "rgba(255,255,255,0.06)"
+btn_bg                 = "rgba(255,255,255,0.08)"
+btn_hover              = "rgba(255,255,255,0.15)"
+answer_card_bg         = "rgba(20,80,55,0,0.85)"
 
 def get_img_base64(path):
     try:
@@ -301,14 +287,6 @@ with st.sidebar:
         st.session_state.page = "flashcards"
     if st.button("🚀  Quiz", use_container_width=True):
         st.session_state.page = "quiz"
-
-    st.markdown("---")
-
-    # Dark mode toggle in sidebar
-    if st.button(toggle_label + "  Toggle theme",
-                 use_container_width=True, key="theme_toggle"):
-        st.session_state.dark_mode = not st.session_state.dark_mode
-        st.rerun()
 
     st.markdown("---")
 

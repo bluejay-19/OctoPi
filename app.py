@@ -14,30 +14,16 @@ def get_img_base64(path):
 octo_b64 = get_img_base64("octopus.png")
 octo_src = f"data:image/png;base64,{octo_b64}" if octo_b64 else ""
 
-if "dark_mode" not in st.session_state:
-    st.session_state.dark_mode = True
 
-dark = st.session_state.dark_mode
-
-if dark:
-    bg_top, bg_mid, bg_bot   = "#061a2e", "#0a2f52", "#0e4a7a"
-    seabed_color              = "#2a1d12"
-    sand_color                = "#5a3e24"
-    text_color, sub_color     = "#E8F4FD", "#90b8d8"
-    seaweed1, seaweed2        = "#1a6b3c", "#22884d"
-    toggle_label              = "☀️"
-    rock_color                = "#2c3e50"
-else:
-    bg_top, bg_mid, bg_bot   = "#a8d8ea", "#74b9e0", "#4a9cc7"
-    seabed_color              = "#5c4033"
-    sand_color                = "#8a5a3b"
-    text_color, sub_color     = "#0a2744", "#1a4a6e"
-    seaweed1, seaweed2        = "#2d8a50", "#3aad64"
-    toggle_label              = "🌙"
-    rock_color                = "#7f8c8d"
-
-# allows the fish to be more visible when in light mode 
-fish_opacity = 0.55 if dark else 0.85 
+bg_top, bg_mid, bg_bot   = "#061a2e", "#0a2f52", "#0e4a7a"
+seabed_color             = "#2a1d12"
+sand_color               = "#5a3e24"
+text_color               = "#E8F4FD"
+sub_color                = "#90b8d8"
+seaweed1                 = "#1a6b3c"
+seaweed2                 = "#22884d"
+rock_color               = "#2c3e50"
+fish_opacity             = 0.55
 
 st.markdown(f"""
 <style>
@@ -64,10 +50,6 @@ st.markdown(f"""
     [data-testid="stButton"] > button:hover {{ transform: scale(1.12) !important; }}
 </style>
 """, unsafe_allow_html=True)
-
-if st.button(toggle_label, key="toggle"):
-    st.session_state.dark_mode = not st.session_state.dark_mode
-    st.rerun()
 
 scene_html = f"""
 <!DOCTYPE html>
