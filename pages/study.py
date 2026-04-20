@@ -343,6 +343,14 @@ if st.session_state.page == "chat":
 
     st.markdown("---")
 
+    # Clear chat button 
+    if st.session_state.messages: 
+        _, clear_col, _ = st.columns([4 ,1, 1])
+        with clear_col:
+            if st.button("🗑️ Clear chat", use_container_width=True):
+                st.session_state.messages =[]
+                st.rerun()
+
     if not st.session_state.messages:
         st.markdown(f"""
             <div style='background:{card_bg}; border:1px solid {card_border};
