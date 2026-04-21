@@ -1,3 +1,10 @@
+import logging 
+logging.basicConfig(
+    filename='octo_log.txt',
+    level= logging.INFO,
+    format='%(asctime)s - %(message)s'
+)
+
 import streamlit as st
 from groq import Groq
 from dotenv import load_dotenv
@@ -70,6 +77,7 @@ Answer in whatever language the student uses.
                 temperature=0.7,    # controls creativity of Octo 
                 max_tokens=1024     # liimits Octo's response length 
             )
+            logging.info(f"Q: {prompt[:100]} | A: {response.choices[0].message.content[:100]}")
             return response.choices[0].message.content
         except Exception as e:
             if attempt == retries - 1:
