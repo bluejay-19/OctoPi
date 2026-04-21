@@ -6,6 +6,7 @@ import os
 import json
 import base64
 import io
+import markdown as md_lib 
 
 load_dotenv()
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
@@ -104,6 +105,16 @@ def get_img_base64(path):
             return base64.b64encode(f.read()).decode()
     except:
         return ""
+    
+def render_markdown(text):
+    try: 
+        return md_lib.markdown(text, extensions=["nl2br"])
+    except: 
+        import re 
+        text = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', text)
+        text = re.sub(r'\*\*(.+?)\*\*', r'<em>\1</em>', text)
+        text = text.replace('\n', '<br')
+        return text 
 
 # ── Global CSS ──
 st.markdown(f"""
@@ -230,6 +241,29 @@ st.markdown(f"""
     h1, h2, h3, h4 {{ color: {text_color} !important; }}
     p {{ color: {text_color}; }}
 
+    .octo-msg strong {{ color: {text_color}; font-weight: 700; }}
+    .octo-msg em {{ color: {sub_color}; font-style: italic; }}
+    .octo-msg ul, .octo-msg ol {{
+        margin: 6px 0 6px 18px;
+        color: {text_color};
+        font-size: 14px;
+    }}
+
+    .octo-msg p {{
+        margin: 4px 0;
+        color: {text_color};
+        font-size: 14px;
+    }}
+
+    .octo-msg code {{
+        background: rgba(255,255,255,0.1);
+        border-radius: 4px;
+        padding: 1px 5px;
+        font-size: 13px;
+        color: {sub_color};
+    }}
+
+
     /* Progress */
     .stProgress > div > div {{ background: #F5E642 !important; }}
 
@@ -265,7 +299,22 @@ st.markdown(f"""
         animation: rise linear infinite;
         pointer-events: none; z-index: 0;
     }}
+
+    /* Copyright footer */
+    .octo-footer {{
+        position: fixed;
+        bottom: 10px;
+        right: 20px;
+        font-size: 13px;
+        color: rgba(144,184,216,0.5);
+        z-index: 999;
+        pointer-events: none;
+    }}
+
 </style>
+
+
+<div class="octo-footer">© 2026 OctoPi</div>
 
 <div class="bubble" style="width:8px;height:8px;left:5vw;animation-duration:8s;bottom:-60px;"></div>
 <div class="bubble" style="width:14px;height:14px;left:15vw;animation-duration:11s;animation-delay:1.5s;bottom:-60px;"></div>
@@ -384,13 +433,14 @@ if st.session_state.page == "chat":
                     <p style='color:{text_color};font-size:14px;margin:0;'>{msg["content"]}</p>
                 </div>""", unsafe_allow_html=True)
         else:
+            rendered = render_markdown(msg["content"])
             st.markdown(f"""
                 <div style='background:rgba(255,255,255,0.05);
                 border:1px solid {card_border};
                 border-radius:12px 12px 12px 4px;
                 padding:12px 16px;margin:6px 25% 6px 0;'>
                     <p style='font-size:11px;color:{sub_color};margin:0 0 4px;'>🐙 Octo</p>
-                    <p style='color:{text_color};font-size:14px;margin:0;'>{msg["content"]}</p>
+                    <div class='octo-msg'>{rendered}</div>
                 </div>""", unsafe_allow_html=True)
 
     st.markdown("</div>", unsafe_allow_html=True)
