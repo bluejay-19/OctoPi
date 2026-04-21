@@ -45,7 +45,6 @@ if "input_key" not in st.session_state:
 
 
 # Colour system
-
 bg_top, bg_mid, bg_bot = "#061a2e", "#0a2f52", "#0e4a7a"
 text_color             = "#E8F4FD"
 sub_color              = "#90b8d8"
@@ -68,6 +67,7 @@ def ask_octo(prompt, system_extra="", retries=2):
     system = f"""You are Octo, a cheerful and friendly octopus study buddy!
 Help students understand their notes in a fun and encouraging way.
 Occasionally make a light octopus pun! Keep answers clear and student friendly.
+Answer in whatever language the student uses.
 {system_extra}"""
     for attempt in range(retries):
         try:
@@ -84,9 +84,10 @@ Occasionally make a light octopus pun! Keep answers clear and student friendly.
                 raise e
     return ""
 
-@st.cache_data      # Caching for repeated API calls 
-def extract_pdf(file):
-    reader = PyPDF2.PdfReader(file)
+@st.cache_data
+def extract_pdf(file_bytes, file_name):
+    import io
+    reader = PyPDF2.PdfReader(io.BytesIO(file_bytes))
     text = ""
     for page in reader.pages:
         text += page.extract_text() or ""
@@ -112,31 +113,26 @@ def clean_json(raw):
 # ── GLOBAL CSS ──
 st.markdown(f"""
 <style>
-    /* Hide default Streamlit nav page labels */
     [data-testid="stSidebarNav"] {{ display: none !important; }}
     #MainMenu, footer {{ visibility: hidden; }}
 
-    /* Ocean background */
     .stApp {{
         background: linear-gradient(180deg,
             {bg_top} 0%, {bg_mid} 55%, {bg_bot} 100%) !important;
         min-height: 100vh;
     }}
 
-    /* Remove white/dark content box */
     .stMainBlockContainer, .block-container {{
         background: transparent !important;
         padding: 2rem 2.5rem !important;
         max-width: 100% !important;
     }}
 
-    /* Sidebar */
     [data-testid="stSidebar"] > div:first-child {{
         background: {sidebar_bg} !important;
         border-right: 1px solid {card_border} !important;
     }}
 
-    /* Sidebar text */
     [data-testid="stSidebar"] p,
     [data-testid="stSidebar"] h1,
     [data-testid="stSidebar"] h2,
@@ -146,7 +142,6 @@ st.markdown(f"""
         color: {text_color} !important;
     }}
 
-    /* Sidebar nav buttons */
     [data-testid="stSidebar"] [data-testid="stButton"] > button {{
         background: {btn_bg} !important;
         border: 1px solid {card_border} !important;
@@ -162,7 +157,6 @@ st.markdown(f"""
         transform: translateX(3px) !important;
     }}
 
-    /* Main content buttons */
     .stButton > button {{
         background: {btn_bg} !important;
         border: 1px solid {card_border} !important;
@@ -174,7 +168,6 @@ st.markdown(f"""
         background: {btn_hover} !important;
     }}
 
-    /* Text inputs */
     .stTextInput input {{
         background: {input_bg} !important;
         border: 1px solid {card_border} !important;
@@ -185,7 +178,6 @@ st.markdown(f"""
         color: {sub_color} !important;
     }}
 
-    /* Text areas */
     .stTextArea textarea {{
         background: {input_bg} !important;
         border: 1px solid {card_border} !important;
@@ -196,7 +188,6 @@ st.markdown(f"""
         color: {sub_color} !important;
     }}
 
-    /* File uploader */
     [data-testid="stFileUploader"] {{
         background: {input_bg} !important;
         border: 1.5px dashed {card_border} !important;
@@ -207,32 +198,14 @@ st.markdown(f"""
         color: {text_color} !important;
     }}
 
-    /* Radio buttons */
-    .stRadio label {{
-        color: {text_color} !important;
-    }}
+    .stRadio label {{ color: {text_color} !important; }}
+    .stCheckbox label {{ color: {text_color} !important; }}
+    .stSlider label {{ color: {text_color} !important; }}
 
-    /* Checkbox */
-    .stCheckbox label {{
-        color: {text_color} !important;
-    }}
+    h1, h2, h3, h4 {{ color: {text_color} !important; }}
 
-    /* Slider */
-    .stSlider label {{
-        color: {text_color} !important;
-    }}
+    .stProgress > div > div {{ background: #F5E642 !important; }}
 
-    /* Headings */
-    h1, h2, h3, h4 {{
-        color: {text_color} !important;
-    }}
-
-    /* Progress bar */
-    .stProgress > div > div {{
-        background: #F5E642 !important;
-    }}
-
-    /* Bubbles */
     @keyframes rise {{
         0%   {{ bottom: -60px; opacity: 0.6; }}
         100% {{ bottom: 110vh; opacity: 0; }}
@@ -247,7 +220,6 @@ st.markdown(f"""
         z-index: 0;
     }}
 
-    /* Download button */
     [data-testid="stDownloadButton"] > button {{
         background: {btn_bg} !important;
         border: 1px solid {card_border} !important;
@@ -322,7 +294,9 @@ if st.session_state.page == "chat":
             "pdf", type="pdf", label_visibility="collapsed"
         )
         if uploaded_file:
-            st.session_state.notes = extract_pdf(uploaded_file)
+            # FIX: pass bytes + name so @st.cache_data can hash it correctly
+            file_bytes = uploaded_file.read()
+            st.session_state.notes = extract_pdf(file_bytes, uploaded_file.name)
             st.success("✅ PDF loaded!")
 
     with up_col2:
@@ -344,12 +318,11 @@ if st.session_state.page == "chat":
 
     st.markdown("---")
 
-    # Clear chat button 
-    if st.session_state.messages: 
-        _, clear_col, _ = st.columns([4 ,1, 1])
+    if st.session_state.messages:
+        _, clear_col, _ = st.columns([4, 1, 1])
         with clear_col:
             if st.button("🗑️ Clear chat", use_container_width=True):
-                st.session_state.messages =[]
+                st.session_state.messages = []
                 st.rerun()
 
     if not st.session_state.messages:
@@ -359,7 +332,7 @@ if st.session_state.page == "chat":
             margin-bottom:16px;'>
                 <p style='color:{text_color}; margin:0;'>
                 🐙 Hi there! I'm Octo, your aquatic study buddy!
-                Upload a PDF or paste your notes above, then ask me anything!
+                Upload a PDF or paste your notes above, then ask me anything — in any language!
                 </p>
             </div>
         """, unsafe_allow_html=True)
@@ -395,21 +368,22 @@ if st.session_state.page == "chat":
     with col2:
         send = st.button("Send 🌊", use_container_width=True)
 
-    if send and question:               # Prevents empty sends 
-        # Input validation - character limit check
-        if len(question.strip()):
-            st.warning("Please type a proper question for Octo! 🐙")
+    if send and question:
+        # FIX: was `if len(question.strip())` which is ALWAYS truthy for non-empty input
+        if not question.strip():
+            st.warning("Please type something first! 🐙")
         elif len(question) > 2000:
-            st.warning("Not to be a downer but that's a bit long! Keep your question under 2000 characters")
-        else: 
+            st.warning("That's a bit long! Keep your question under 2000 characters 🐙")
+        else:
             st.session_state.messages.append({"role": "user", "content": question})
-            prompt = f"Here are the student's notes:\n{st.session_state.notes}\n\nStudent asks: {question}" \
+            prompt = (
+                f"Here are the student's notes:\n{st.session_state.notes}\n\nStudent asks: {question}"
                 if st.session_state.notes else question
+            )
             with st.spinner("Octo is thinking... 🐙"):
-                # Rate limit handling 
                 try:
                     answer = ask_octo(prompt)
-                except Exception as e: 
+                except Exception as e:
                     answer = "🐙 Oops! Octo is a bit overwhelmed right now. Try again in a moment!"
 
             st.session_state.messages.append({"role": "assistant", "content": answer})
@@ -513,7 +487,6 @@ elif st.session_state.page == "quiz":
         st.warning("Please upload a PDF or paste your notes in the Chat page first!")
     else:
         if not st.session_state.quiz:
-            num = 5
             st.markdown(f"""
                 <div style='background:{card_bg}; border:1px solid {card_border};
                 border-radius:12px; padding:20px; backdrop-filter:blur(8px);'>
@@ -530,15 +503,15 @@ elif st.session_state.page == "quiz":
                 if st.button("🚀 Generate Quiz", use_container_width=True):
                     with st.spinner("Octo is writing your quiz... 🐙"):
                         prompt = f"""You are a quiz generator. Output ONLY a JSON array, nothing else.
-            Generate exactly 5 multiple choice questions from the content below.
+Generate exactly 5 multiple choice questions from the content below.
 
-            Each question must follow this exact format:
-            {{"type":"mc","question":"question text here","options":["A. option","B. option","C. option","D. option"],"answer":"A"}}
+Each question must follow this exact format:
+{{"type":"mc","question":"question text here","options":["A. option","B. option","C. option","D. option"],"answer":"A"}}
 
-            Rules:
-            - Return ONLY the JSON array starting with [ and ending with ]
-            - No markdown, no explanation, nothing else
-            - answer field must be just the letter: A, B, C, or D
+Rules:
+- Return ONLY the JSON array starting with [ and ending with ]
+- No markdown, no explanation, nothing else
+- answer field must be just the letter: A, B, C, or D
 
 Content:
 {st.session_state.notes[:1500]}"""
@@ -590,7 +563,6 @@ Content:
             idx = st.session_state.quiz_index
             total = len(quiz)
 
-            # Exit quiz button at top
             exit_col, _ = st.columns([1, 5])
             with exit_col:
                 if st.button("← Exit Quiz", use_container_width=True):
