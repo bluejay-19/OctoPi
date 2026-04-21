@@ -327,18 +327,18 @@ if st.session_state.page == "chat":
     st.markdown("<br>", unsafe_allow_html=True)
 
     # ── Chat card ──
-    st.markdown(f"""
-        <div style='background:{card_bg};border:1px solid {card_border};
-        border-radius:16px;padding:24px 28px;backdrop-filter:blur(8px);'>
-    """, unsafe_allow_html=True)
+    # st.markdown(f"""
+    #     <div style='background:{card_bg};border:1px solid {card_border};
+    #     border-radius:16px;padding:24px 28px;backdrop-filter:blur(8px);'>
+    # """, unsafe_allow_html=True)
 
     if st.session_state.messages:
-        _, clear_col = st.columns([5, 1])
-        with clear_col:
-            if st.button("🗑️", use_container_width=True):
+        col1, col2 = st.columns([11, 1])
+        with col2:
+            if st.button("🗑️", use_container_width=True, key="clear_chat"):
                 st.session_state.messages = []
                 st.rerun()
-
+                
     # Welcome bubble
     if not st.session_state.messages:
         st.markdown(f"""
