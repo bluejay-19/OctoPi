@@ -334,7 +334,7 @@ if st.session_state.page == "chat":
             label_visibility="collapsed",
             key="paste_notes"
         )
-        load_col, _ = st.columns([1, 4])
+        load_col, _ = st.columns([2, 3])
         with load_col:
             if st.button("Load Notes ✅", use_container_width=True):
                 if paste.strip():
