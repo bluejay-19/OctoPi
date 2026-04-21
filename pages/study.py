@@ -125,11 +125,16 @@ st.markdown(f"""
     [data-testid="stSidebar"] {{
         min-width: 220px !important;
         max-width: 220px !important;
+        height: 100vh !important;
     }}
     [data-testid="stSidebar"] > div:first-child {{
         background: {sidebar_bg} !important;
         border-right: 1px solid {card_border} !important;
         padding: 20px 12px !important;
+        height: 100% !important;
+        min-height: 100vh !important;
+        position: fixed !important;
+        width: 220px !important;
     }}
     [data-testid="stSidebar"] p,
     [data-testid="stSidebar"] span,
@@ -149,9 +154,16 @@ st.markdown(f"""
         padding: 10px 14px !important;
         width: 100% !important;
         transition: all 0.2s ease !important;
-        margin-bottom: 2px !important;
+        margin-bottom: 0px !important;
+        margin-top: 0px !important;
         box-shadow: none !important;
+        display: block !important;
     }}
+
+    [data-testid="stSidebar"] [data-testid="stButton"] > button:first-child {{
+        margin-top: 0 !important;
+    }}
+
     [data-testid="stSidebar"] [data-testid="stButton"] > button:hover {{
         background: {btn_hover} !important;
         color: {text_color} !important;
@@ -263,19 +275,10 @@ with st.sidebar:
 
     pages = [("💬", "Chat", "chat"), ("🃏", "Flashcards", "flashcards"), ("🚀", "Quiz", "quiz")]
     for icon, label, key in pages:
-        if st.session_state.page == key:
-            # Active item — styled div, not a button
-            st.markdown(f"""
-                <div style='background:{btn_bg};border:1px solid {card_border};
-                border-radius:10px;padding:10px 14px;margin-bottom:4px;
-                color:{text_color};font-size:14px;font-weight:600;'>
-                    {icon}&nbsp;&nbsp;{label}
-                </div>""", unsafe_allow_html=True)
-        else:
-            if st.button(f"{icon}  {label}", use_container_width=True, key=f"nav_{key}"):
-                st.session_state.page = key
-                st.rerun()
-
+        if st.button(f"{icon}  {label}", use_container_width=True, key=f"nav_{key}"):
+            st.session_state.page = key
+            st.rerun()
+            
     st.markdown(f"<hr style='border-color:{card_border};margin:14px 0 10px;'/>", unsafe_allow_html=True)
 
     if st.session_state.notes:
@@ -338,7 +341,7 @@ if st.session_state.page == "chat":
             if st.button("🗑️", use_container_width=True, key="clear_chat"):
                 st.session_state.messages = []
                 st.rerun()
-                
+
     # Welcome bubble
     if not st.session_state.messages:
         st.markdown(f"""
