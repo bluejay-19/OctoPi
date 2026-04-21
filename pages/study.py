@@ -12,7 +12,7 @@ client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 st.set_page_config(
     page_title="OctoPi - Study Dashboard",
-    page_icon="🐙",
+    page_icon="octo-icon.png",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -98,6 +98,13 @@ def clean_json(raw):
         raw = raw[s:e+1]
     return raw
 
+def get_img_base64(path):
+    try:
+        with open(path, "rb") as f:
+            return base64.b64encode(f.read()).decode()
+    except:
+        return ""
+
 # ── Global CSS ──
 st.markdown(f"""
 <style>
@@ -143,6 +150,12 @@ st.markdown(f"""
     }}
 
     /* Sidebar nav buttons */
+
+    [data-testid="stSidebar"] .stButton {{
+        text-align: left !important;
+        width: 100% !important;
+    }}
+
     [data-testid="stSidebar"] [data-testid="stButton"] > button {{
         background: transparent !important;
         border: none !important;
@@ -265,9 +278,12 @@ st.markdown(f"""
 
 # ── SIDEBAR ──
 with st.sidebar:
+    octo_b64 = get_img_base64("octo_icon.png")
     st.markdown(f"""
         <div style='padding:4px 4px 20px;'>
-            <p style='font-size:20px;font-weight:800;color:{text_color};margin:0;'>🐙 OctoPi</p>
+            <img src="data:image/png;base64,{octo_b64}" 
+            width="64" style="border-radius:50%; margin-bottom:8px;"/>
+            <p style='font-size:20px;font-weight:800;color:{text_color};margin:0;'>OctoPi</p>
             <p style='font-size:11px;color:{sub_color};margin:0;'>Study Dashboard</p>
         </div>
         <hr style='border-color:{card_border};margin:0 0 10px;'/>
@@ -278,7 +294,7 @@ with st.sidebar:
         if st.button(f"{icon}  {label}", use_container_width=True, key=f"nav_{key}"):
             st.session_state.page = key
             st.rerun()
-            
+
     st.markdown(f"<hr style='border-color:{card_border};margin:14px 0 10px;'/>", unsafe_allow_html=True)
 
     if st.session_state.notes:
