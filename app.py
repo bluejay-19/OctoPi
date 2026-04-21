@@ -2,7 +2,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 import base64
 
-st.set_page_config(page_title="OctoPi", page_icon="🐙", layout="wide")
+st.set_page_config(page_title="OctoPi", page_icon="octo_icon.png", layout="wide")
 
 def get_img_base64(path):
     try:
@@ -197,11 +197,7 @@ scene_html = f"""
     width: clamp(160px, 20vw, 280px);
     animation: bobbing 4s ease-in-out infinite;
   }}
-  # .octo-wrap img {{
-  #   width:100%;
-  #   filter: drop-shadow(0 16px 40px rgba(0,0,0,.3));
-  # }}
-
+  
   /* Speech bubble — sits top-right of the octo box */
   .speech {{
     position: absolute;
@@ -436,21 +432,21 @@ scene_html = f"""
   </style>
 
   <!-- Tentacles (behind head) -->
-  <path class="arm d1" d="M68 148 C52 162, 42 178, 50 195 C55 205, 65 205, 66 195" stroke="#c95530" stroke-width="9" fill="none" stroke-linecap="round"/>
-  <path class="arm d2" d="M78 152 C65 168, 60 185, 68 198 C73 206, 82 204, 82 194" stroke="#c95530" stroke-width="9" fill="none" stroke-linecap="round"/>
-  <path class="arm d3" d="M90 155 C83 172, 82 190, 90 200 C94 206, 101 204, 100 196" stroke="#c95530" stroke-width="9" fill="none" stroke-linecap="round"/>
-  <path class="arm d4" d="M100 156 C100 174, 100 192, 100 202" stroke="#c95530" stroke-width="9" fill="none" stroke-linecap="round"/>
-  <path class="arm d5" d="M110 155 C117 172, 118 190, 110 200 C106 206, 99 204, 100 196" stroke="#c95530" stroke-width="9" fill="none" stroke-linecap="round"/>
-  <path class="arm d6" d="M122 152 C135 168, 140 185, 132 198 C127 206, 118 204, 118 194" stroke="#c95530" stroke-width="9" fill="none" stroke-linecap="round"/>
-  <path class="arm"   d="M132 148 C148 162, 158 178, 150 195 C145 205, 135 205, 134 195" stroke="#c95530" stroke-width="9" fill="none" stroke-linecap="round"/>
+  <path class="arm d1" d="M68 148 C52 162, 42 178, 50 195 C55 205, 65 205, 66 195" stroke="#702963" stroke-width="9" fill="none" stroke-linecap="round"/>
+  <path class="arm d2" d="M78 152 C65 168, 60 185, 68 198 C73 206, 82 204, 82 194" stroke="#702963" stroke-width="9" fill="none" stroke-linecap="round"/>
+  <path class="arm d3" d="M90 155 C83 172, 82 190, 90 200 C94 206, 101 204, 100 196" stroke="##702963" stroke-width="9" fill="none" stroke-linecap="round"/>
+  <path class="arm d4" d="M100 156 C100 174, 100 192, 100 202" stroke="#702963" stroke-width="9" fill="none" stroke-linecap="round"/>
+  <path class="arm d5" d="M110 155 C117 172, 118 190, 110 200 C106 206, 99 204, 100 196" stroke="#702963" stroke-width="9" fill="none" stroke-linecap="round"/>
+  <path class="arm d6" d="M122 152 C135 168, 140 185, 132 198 C127 206, 118 204, 118 194" stroke="#702963" stroke-width="9" fill="none" stroke-linecap="round"/>
+  <path class="arm"   d="M132 148 C148 162, 158 178, 150 195 C145 205, 135 205, 134 195" stroke="#702963" stroke-width="9" fill="none" stroke-linecap="round"/>
 
   <!-- Body (fills gap between mantle and tentacles) -->
-  <rect x="58" y="68" width="84" height="70" fill="#e0703a" rx="2"/>
-  <ellipse cx="100" cy="135" rx="42" ry="30" fill="#e0703a"/>
+  <rect x="58" y="68" width="84" height="70" fill="#702963" rx="2"/>
+  <ellipse cx="100" cy="135" rx="42" ry="30" fill="#702963"/>
 
   <!-- Mantle dome -->
-  <ellipse cx="100" cy="70" rx="44" ry="50" fill="#e0703a"/>
-  <ellipse cx="88" cy="50" rx="18" ry="24" fill="#eb8a54" opacity="0.35"/>
+  <ellipse cx="100" cy="70" rx="44" ry="50" fill="#702963"/>
+  <ellipse cx="88" cy="50" rx="18" ry="24" fill="#CBC3E3" opacity="0.35"/>
 
   <!-- Eyes -->
   <circle cx="83" cy="78" r="12" fill="white"/>
@@ -480,6 +476,6 @@ scene_html = f"""
 </html>
 """
 
-components.html(scene_html, height=930, scrolling=False)
+components.html(scene_html, height=920, scrolling=False)
 
 
