@@ -6,11 +6,12 @@ OctoPi is an AI-powered study assistant that helps students learn more effective
 ---
 
 ## Features
+- 💬 Chat with Octo about your notes in any language
 - 📄 Upload a PDF or paste notes directly
-- 💬 Ask Octo any question about your content
-- 🃏 Generate flashcards instantly
-- ✅ Quiz mode — multiple choice, true/false, and written answers
+- 🃏 Generate 10 flashcards instantly
+- ✅ Quiz mode with 5 multiple choice questions 
 - ⬇️ Download flashcards as a `.txt` file to keep forever
+- 🐙 Friendly octopus personality with an ocean theme in the background 
 
 ---
 
@@ -25,7 +26,10 @@ OctoPi is an AI-powered study assistant that helps students learn more effective
 | Frontend + Backend | Streamlit |
 | AI Model | Groq API — Llama 3.3 70B |
 | PDF Reading | PyPDF2 |
+| Caching | Streamlit cache_data |
+| Logging | Python logging module |
 | Deployment | Streamlit Community Cloud |
+
 
 ---
 
@@ -62,11 +66,11 @@ OctoPi/
 ├── app.py              # Landing page
 ├── pages/
 │   └── study.py        # Main study dashboard
-├── octopus.png         # Mascot image
+├── octo_icon.png       # App icon
 ├── requirements.txt
 ├── test_set.md         # 20 DSA test questions for evaluation
 ├── baseline.md         # Baseline performance results
-├── .env                # API key — never upload this!
+├── .env                # API key & logging text   file — never upload this!
 ├── .gitignore
 └── README.md
 ```
@@ -75,6 +79,29 @@ OctoPi/
 
 ## Testing & Evaluation
 OctoPi includes a `test_set.md` with 20 DSA questions across flashcard, MC, T/F, and written formats, and a `baseline.md` to track model performance over time.
+
+---
+
+## Security 
+- API key is stored in .env, never in code 
+- Input validation on all user inputs 
+- Session-only storage, no user data is persisted 
+- Logging truncated to 100 chars, excluded from repo
+
+---
+
+## Known limitations 
+- Pressing Enter in chat doesn't trigger send
+- Scanned PDFs without text layer not supported 
+- Quiz ocassionally needs two attempts on first load 
+
+---
+
+## Roadmap (v2)
+- Spaced repetition for flashcards 
+- Multi-document type support 
+- Persistent user session
+- Mixed question types in quiz mode 
 
 ---
 
