@@ -11,8 +11,8 @@ def get_img_base64(path):
     except:
         return ""
 
-octo_b64 = get_img_base64("octopus.png")
-octo_src = f"data:image/png;base64,{octo_b64}" if octo_b64 else ""
+# octo_b64 = get_img_base64("octopus.png")
+# octo_src = f"data:image/png;base64,{octo_b64}" if octo_b64 else ""
 
 
 bg_top, bg_mid, bg_bot   = "#061a2e", "#0a2f52", "#0e4a7a"
@@ -88,12 +88,12 @@ scene_html = f"""
     100%{{ transform:scale(1);   opacity:1; }}
   }}
   @keyframes swimLeft {{
-    0%   {{ right:-120px; }}
-    100% {{ right:110vw;  }}
+    0%   {{ right:-150px; }}
+    100% {{ right:130vw;  }}
   }}
   @keyframes swimRight {{
-    0%   {{ left:-120px; }}
-    100% {{ left:110vw;  }}
+    0%   {{ left:-150px; }}
+    100% {{ left:130vw;  }}
   }}
   @keyframes pulse {{
     0%,100% {{ box-shadow: 0 8px 30px rgba(245,230,66,.4); }}
@@ -124,6 +124,7 @@ scene_html = f"""
     opacity: {fish_opacity};
     filter: drop-shadow(0 2px 6px rgba(0,0,0,.25));
     z-index: 1;
+    will-change: transform;
   }}
   .fish-l {{ animation: swimLeft linear infinite; }}
   .fish-r {{ animation: swimRight linear infinite; transform: scaleX(-1); }}
@@ -136,7 +137,6 @@ scene_html = f"""
     height: 30px;
     background: {rock_color};
     border-radius: 40% 60% 40% 40%;
-    # opacity: 0.9;
     z-index: 6;
     filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.4));
     transform: rotate(var(--r, 0deg));
@@ -194,13 +194,13 @@ scene_html = f"""
   /* Octopus wrapper */
   .octo-wrap {{
     position: relative;
-    width: clamp(200px, 26vw, 360px);
+    width: clamp(160px, 20vw, 280px);
     animation: bobbing 4s ease-in-out infinite;
   }}
-  .octo-wrap img {{
-    width:100%;
-    filter: drop-shadow(0 16px 40px rgba(0,0,0,.3));
-  }}
+  # .octo-wrap img {{
+  #   width:100%;
+  #   filter: drop-shadow(0 16px 40px rgba(0,0,0,.3));
+  # }}
 
   /* Speech bubble — sits top-right of the octo box */
   .speech {{
@@ -225,6 +225,25 @@ scene_html = f"""
     border-top-color:white;
     border-bottom:0;
   }}
+  .octo-svg {{
+    width: 100%;
+    filter: drop-shadow(0 16px 40px rgba(0,0,0,0.3));
+  }}
+  .arm {{
+    transform-origin: top;
+    animation: wave 2.5s ease-in-out infinite; 
+  }}
+
+  .arm.delay {{
+    animation-delay: 0.4s; 
+  }}
+
+  @keyframes wave {{
+    0%   {{ transform: rotate(-8deg) scaleY(1); }}
+    40%  {{ transform: rotate(6deg) scaleY(1.05); }}
+    70%  {{ transform: rotate(2deg) scaleY(0.98); }}
+    100% {{ transform: rotate(-8deg) scaleY(1); }}
+  }}  
 
   /* Title */
   .hero-title {{
@@ -244,20 +263,23 @@ scene_html = f"""
     text-align: center;
   }}
   .dive-btn {{
-    background: #F5E642;
-    color: #0a2744;
-    font-weight: 800;
+    background: rgba(255,255,255,0.08); 
+    color: #E8F4FD;
+    font-weight: 700;
     border-radius: 50px;
     padding: 14px 56px;
-    border: none;
+    border: 1px solid rgba(255,255,255,0.18);
     font-size: clamp(15px, 1.2vw, 17px);
     cursor: pointer;
-    animation: pulse 2.5s ease-in-out infinite;
-    transition: transform .2s;
+    transition: all 0.25s ease;
     text-decoration: none;
     display: inline-block;
+    box-shadow: 0 6px 20px rgba(158, 62, 26, 0.25)
+    backdrop-filter: blur(10px);
   }}
-  .dive-btn:hover {{ transform: scale(1.07) translateY(-3px); }}
+  .dive-btn:hover {{ 
+    transform: translateY(-3px) scale(1.04);
+    box-shadow: 0 12px 35px rgba(158, 62, 26, 0.4); }}
 </style>
 </head>
 <body>
@@ -396,9 +418,56 @@ scene_html = f"""
 <div class="center-stack">
 
   <!-- Octopus + speech bubble as a relative unit -->
-  <div class="octo-wrap">
-    {"" if not octo_src else f'<img src="{octo_src}" alt="Octo"/>'}
-    <div class="speech">Hi there! 👋 Ready to study?</div>
+  <svg class="octo-svg" viewBox="0 0 200 220">
+  <style>
+    .arm {{ transform-origin: 50% 0%; animation: wave 2.8s ease-in-out infinite; }}
+    .arm.d1 {{ animation-delay: 0.2s; }}
+    .arm.d2 {{ animation-delay: 0.5s; }}
+    .arm.d3 {{ animation-delay: 0.8s; }}
+    .arm.d4 {{ animation-delay: 1.1s; }}
+    .arm.d5 {{ animation-delay: 1.4s; }}
+    .arm.d6 {{ animation-delay: 1.7s; }}
+    
+    @keyframes wave {{
+      0%,100% {{ transform: rotate(-12deg) scaleY(1); }}
+      50%      {{ transform: rotate(12deg) scaleY(1.06); }}
+    }}
+  
+  </style>
+
+  <!-- Tentacles (behind head) -->
+  <path class="arm d1" d="M68 148 C52 162, 42 178, 50 195 C55 205, 65 205, 66 195" stroke="#c95530" stroke-width="9" fill="none" stroke-linecap="round"/>
+  <path class="arm d2" d="M78 152 C65 168, 60 185, 68 198 C73 206, 82 204, 82 194" stroke="#c95530" stroke-width="9" fill="none" stroke-linecap="round"/>
+  <path class="arm d3" d="M90 155 C83 172, 82 190, 90 200 C94 206, 101 204, 100 196" stroke="#c95530" stroke-width="9" fill="none" stroke-linecap="round"/>
+  <path class="arm d4" d="M100 156 C100 174, 100 192, 100 202" stroke="#c95530" stroke-width="9" fill="none" stroke-linecap="round"/>
+  <path class="arm d5" d="M110 155 C117 172, 118 190, 110 200 C106 206, 99 204, 100 196" stroke="#c95530" stroke-width="9" fill="none" stroke-linecap="round"/>
+  <path class="arm d6" d="M122 152 C135 168, 140 185, 132 198 C127 206, 118 204, 118 194" stroke="#c95530" stroke-width="9" fill="none" stroke-linecap="round"/>
+  <path class="arm"   d="M132 148 C148 162, 158 178, 150 195 C145 205, 135 205, 134 195" stroke="#c95530" stroke-width="9" fill="none" stroke-linecap="round"/>
+
+  <!-- Body (fills gap between mantle and tentacles) -->
+  <rect x="58" y="68" width="84" height="70" fill="#e0703a" rx="2"/>
+  <ellipse cx="100" cy="135" rx="42" ry="30" fill="#e0703a"/>
+
+  <!-- Mantle dome -->
+  <ellipse cx="100" cy="70" rx="44" ry="50" fill="#e0703a"/>
+  <ellipse cx="88" cy="50" rx="18" ry="24" fill="#eb8a54" opacity="0.35"/>
+
+  <!-- Eyes -->
+  <circle cx="83" cy="78" r="12" fill="white"/>
+  <circle cx="117" cy="78" r="12" fill="white"/>
+  <circle cx="85" cy="80" r="7" fill="#1a1a2e"/>
+  <circle cx="119" cy="80" r="7" fill="#1a1a2e"/>
+  <circle cx="87" cy="77" r="2.5" fill="white"/>
+  <circle cx="121" cy="77" r="2.5" fill="white"/>
+
+  <!-- Smile + blush -->
+  <path d="M88 100 Q100 112 112 100" stroke="#b8501f" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+  <ellipse cx="72" cy="94" rx="8" ry="5" fill="#f4a07a" opacity="0.5"/>
+  <ellipse cx="128" cy="94" rx="8" ry="5" fill="#f4a07a" opacity="0.5"/>
+  
+  </svg>
+
+  <div class="speech">Hi there! 👋 Ready to study?</div>
   </div>
 
   <div class="hero-title">OctoPi</div>
@@ -411,6 +480,6 @@ scene_html = f"""
 </html>
 """
 
-components.html(scene_html, height=900, scrolling=False)
+components.html(scene_html, height=930, scrolling=False)
 
 
