@@ -1,6 +1,7 @@
 import logging 
+# Input/output logging  
 logging.basicConfig(
-    filename='octo_log.txt',
+    filename='octo_log.txt', # creates a simple text file to record input and outputs
     level= logging.INFO,
     format='%(asctime)s - %(message)s'
 )
@@ -77,7 +78,9 @@ Answer in whatever language the student uses.
                 temperature=0.7,    # controls creativity of Octo 
                 max_tokens=1024     # liimits Octo's response length 
             )
+
             logging.info(f"Q: {prompt[:100]} | A: {response.choices[0].message.content[:100]}")
+
             return response.choices[0].message.content
         except Exception as e:
             if attempt == retries - 1:
