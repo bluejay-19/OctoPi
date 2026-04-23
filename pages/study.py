@@ -1,8 +1,8 @@
-import logging 
-# Input/output logging  
+import logging
+# Input/output logging 
 logging.basicConfig(
-    filename='octo_log.txt', # creates a simple text file to record input and outputs
-    level= logging.INFO,
+    filename='octo_log.txt',    # creates a simple text file to record input and output 
+   level=logging.INFO,
     format='%(asctime)s - %(message)s'
 )
 
@@ -14,7 +14,7 @@ import os
 import json
 import base64
 import io
-import markdown as md_lib 
+import markdown as md_lib
 
 load_dotenv()
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
@@ -60,8 +60,18 @@ btn_bg      = "rgba(255,255,255,0.08)"
 btn_hover   = "rgba(255,255,255,0.15)"
 
 # ── Helpers ──
+def render_markdown(text):
+    try:
+        return md_lib.markdown(text, extensions=["nl2br"])
+    except:
+        import re
+        text = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', text)
+        text = re.sub(r'\*(.+?)\*', r'<em>\1</em>', text)
+        text = text.replace('\n', '<br>')
+        return text
+
 def ask_octo(prompt, system_extra="", retries=2):
-    system = f""""You are Octo, a cheerful and friendly octopus study buddy!
+    system = f"""You are Octo, a cheerful and friendly octopus study buddy!
 Your ONLY job is to help students study using their notes.
 If a student asks something completely unrelated to studying or their notes,
 kindly redirect them back to their studies with a light octopus pun.
@@ -77,13 +87,10 @@ Answer in whatever language the student uses.
                     {"role": "system", "content": system},
                     {"role": "user", "content": prompt}
                 ],
-
-                temperature=0.7,    # controls creativity of Octo 
-                max_tokens=1024     # liimits Octo's response length 
+                temperature=0.7,
+                max_tokens=1024
             )
-
             logging.info(f"Q: {prompt[:100]} | A: {response.choices[0].message.content[:100]}")
-
             return response.choices[0].message.content
         except Exception as e:
             if attempt == retries - 1:
@@ -119,26 +126,15 @@ def get_img_base64(path):
             return base64.b64encode(f.read()).decode()
     except:
         return ""
-    
-def render_markdown(text):
-    try: 
-        return md_lib.markdown(text, extensions=["nl2br"])
-    except: 
-        import re 
-        text = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', text)
-        text = re.sub(r'\*\*(.+?)\*\*', r'<em>\1</em>', text)
-        text = text.replace('\n', '<br>')
-        return text 
 
 # ── Global CSS ──
 st.markdown(f"""
 <style>
-    /* Hide collapse button and default nav entirely */
     [data-testid="stSidebarNav"],
     [data-testid="stSidebarCollapseButton"],
     [data-testid="collapsedControl"] {{
         display: none !important;
-    }}
+}}
     #MainMenu, footer, header {{ visibility: hidden; }}
 
     /* Ocean background */
@@ -153,20 +149,17 @@ st.markdown(f"""
         max-width: 100% !important;
     }}
 
-    /* Sidebar */
+    /* ── Sidebar — NO position:fixed, let Streamlit handle sliding ── */
     [data-testid="stSidebar"] {{
         min-width: 220px !important;
         max-width: 220px !important;
-        height: 100vh !important;
     }}
     [data-testid="stSidebar"] > div:first-child {{
         background: {sidebar_bg} !important;
         border-right: 1px solid {card_border} !important;
         padding: 20px 12px !important;
-        height: 100% !important;
         min-height: 100vh !important;
-        position: fixed !important;
-        width: 220px !important;
+        /* NO position:fixed — this is what was breaking reopen */
     }}
     [data-testid="stSidebar"] p,
     [data-testid="stSidebar"] span,
@@ -175,12 +168,9 @@ st.markdown(f"""
     }}
 
     /* Sidebar nav buttons */
-
     [data-testid="stSidebar"] .stButton {{
-        text-align: left !important;
         width: 100% !important;
     }}
-
     [data-testid="stSidebar"] [data-testid="stButton"] > button {{
         background: transparent !important;
         border: none !important;
@@ -192,16 +182,8 @@ st.markdown(f"""
         padding: 10px 14px !important;
         width: 100% !important;
         transition: all 0.2s ease !important;
-        margin-bottom: 0px !important;
-        margin-top: 0px !important;
         box-shadow: none !important;
-        display: block !important;
     }}
-
-    [data-testid="stSidebar"] [data-testid="stButton"] > button:first-child {{
-        margin-top: 0 !important;
-    }}
-
     [data-testid="stSidebar"] [data-testid="stButton"] > button:hover {{
         background: {btn_hover} !important;
         color: {text_color} !important;
@@ -248,13 +230,32 @@ st.markdown(f"""
     }}
     [data-testid="stFileUploader"] * {{ color: {sub_color} !important; }}
 
-    /* Radio */
-    .stRadio label {{ color: {text_color} !important; font-size: 14px !important; }}
+    /* Radio as cards */
+    .stRadio > div {{
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 8px !important;
+    }}
+    .stRadio > div > label {{
+        background: {card_bg} !important;
+        border: 1px solid {card_border} !important;
+        border-radius: 12px !important;
+        padding: 12px 16px !important;
+        color: {text_color} !important;
+        font-size: 14px !important;
+        cursor: pointer !important;
+        transition: all 0.15s ease !important;
+    }}
+    .stRadio > div > label:hover {{
+        background: {btn_hover} !important;
+        border-color: rgba(255,255,255,0.25) !important;
+    }}
 
     /* Headings + text */
     h1, h2, h3, h4 {{ color: {text_color} !important; }}
     p {{ color: {text_color}; }}
 
+    /* Octo chat bubble markdown */
     .octo-msg strong {{ color: {text_color}; font-weight: 700; }}
     .octo-msg em {{ color: {sub_color}; font-style: italic; }}
     .octo-msg ul, .octo-msg ol {{
@@ -262,13 +263,7 @@ st.markdown(f"""
         color: {text_color};
         font-size: 14px;
     }}
-
-    .octo-msg p {{
-        margin: 4px 0;
-        color: {text_color};
-        font-size: 14px;
-    }}
-
+    .octo-msg p {{ margin: 4px 0; color: {text_color}; font-size: 14px; }}
     .octo-msg code {{
         background: rgba(255,255,255,0.1);
         border-radius: 4px;
@@ -277,11 +272,14 @@ st.markdown(f"""
         color: {sub_color};
     }}
 
-
-    /* Progress */
+    /* Progress bar */
     .stProgress > div > div {{ background: #F5E642 !important; }}
+    .stProgress > div {{
+        background: rgba(255,255,255,0.08) !important;
+        border-radius: 99px !important;
+    }}
 
-    /* Download */
+    /* Download button */
     [data-testid="stDownloadButton"] > button {{
         background: {btn_bg} !important;
         border: 1px solid {card_border} !important;
@@ -301,6 +299,17 @@ st.markdown(f"""
         font-weight: 600 !important;
     }}
 
+    /* Copyright footer */
+    .octo-footer {{
+        position: fixed;
+        bottom: 10px;
+        right: 20px;
+        font-size: 11px;
+        color: rgba(144,184,216,0.45);
+        z-index: 999;
+        pointer-events: none;
+    }}
+
     /* Bubbles */
     @keyframes rise {{
         0%   {{ bottom: -60px; opacity: 0.6; }}
@@ -313,20 +322,7 @@ st.markdown(f"""
         animation: rise linear infinite;
         pointer-events: none; z-index: 0;
     }}
-
-    /* Copyright footer */
-    .octo-footer {{
-        position: fixed;
-        bottom: 10px;
-        right: 20px;
-        font-size: 13px;
-        color: rgba(144,184,216,0.5);
-        z-index: 999;
-        pointer-events: none;
-    }}
-
 </style>
-
 
 <div class="octo-footer">© 2026 OctoPi</div>
 
@@ -343,10 +339,9 @@ st.markdown(f"""
 with st.sidebar:
     octo_b64 = get_img_base64("octo_icon.png")
     st.markdown(f"""
-        <div style='padding:4px 4px 20px;'>
-            <img src="data:image/png;base64,{octo_b64}" 
-            width="64" style="border-radius:50%; margin-bottom:8px;"/>
-            <p style='font-size:20px;font-weight:800;color:{text_color};margin:0;'>OctoPi</p>
+        <div style='padding:4px 4px 16px; text-align:center;'>
+            {'<img src="data:image/png;base64,' + octo_b64 + '" width="56" style="border-radius:50%;margin-bottom:8px;display:block;margin-left:auto;margin-right:auto;"/>' if octo_b64 else ''}
+            <p style='font-size:18px;font-weight:800;color:{text_color};margin:0;'>OctoPi</p>
             <p style='font-size:11px;color:{sub_color};margin:0;'>Study Dashboard</p>
         </div>
         <hr style='border-color:{card_border};margin:0 0 10px;'/>
@@ -354,49 +349,42 @@ with st.sidebar:
 
     pages = [("💬", "Chat", "chat"), ("🃏", "Flashcards", "flashcards"), ("🚀", "Quiz", "quiz")]
     for icon, label, key in pages:
-        if st.button(f"{icon}  {label}", use_container_width=True, key=f"nav_{key}"):
-            st.session_state.page = key
-            st.rerun()
+        if st.session_state.page == key:
+            st.markdown(f"""
+                <div style='background:{btn_bg};border:1px solid {card_border};
+                border-radius:10px;padding:10px 14px;margin-bottom:4px;
+                color:{text_color};font-size:14px;font-weight:600;'>
+                    {icon}&nbsp;&nbsp;{label}
+                </div>""", unsafe_allow_html=True)
+        else:
+            if st.button(f"{icon}  {label}", use_container_width=True, key=f"nav_{key}"):
+                st.session_state.page = key
+                st.rerun()
 
     st.markdown(f"<hr style='border-color:{card_border};margin:14px 0 10px;'/>", unsafe_allow_html=True)
 
     if st.session_state.notes:
-        st.markdown(f"""
-            <p style='font-size:11px;color:{sub_color};text-align:center;margin:0;'>
-            ✅ {len(st.session_state.notes):,} chars loaded</p>
-        """, unsafe_allow_html=True)
+        st.markdown(f"<p style='font-size:11px;color:{sub_color};text-align:center;margin:0;'>✅ {len(st.session_state.notes):,} chars loaded</p>", unsafe_allow_html=True)
     else:
-        st.markdown(f"""
-            <p style='font-size:11px;color:{sub_color};text-align:center;margin:0;'>
-            No notes loaded yet</p>
-        """, unsafe_allow_html=True)
+        st.markdown(f"<p style='font-size:11px;color:{sub_color};text-align:center;margin:0;'>No notes loaded yet</p>", unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════
 # CHAT PAGE
 # ══════════════════════════════════════════════
 if st.session_state.page == "chat":
 
-    # ── Upload card ──
     with st.expander("📂 Upload Study Material", expanded=True):
-        uploaded_file = st.file_uploader(
-            "Drop a PDF", type="pdf", label_visibility="collapsed"
-        )
+        uploaded_file = st.file_uploader("Drop a PDF", type="pdf", label_visibility="collapsed")
         if uploaded_file:
             file_bytes = uploaded_file.read()
             st.session_state.notes = extract_pdf(file_bytes, uploaded_file.name)
             st.success(f"✅ PDF loaded — {len(st.session_state.notes):,} characters extracted")
 
-        st.markdown(f"""
-            <p style='font-size:12px;color:{sub_color};
-            text-align:center;margin:12px 0 8px;'>— or paste text below —</p>
-        """, unsafe_allow_html=True)
+        st.markdown(f"<p style='font-size:12px;color:{sub_color};text-align:center;margin:12px 0 8px;'>— or paste text below —</p>", unsafe_allow_html=True)
 
-        paste = st.text_area(
-            "paste", height=110,
+        paste = st.text_area("paste", height=110,
             placeholder="Paste your study text here...",
-            label_visibility="collapsed",
-            key="paste_notes"
-        )
+            label_visibility="collapsed", key="paste_notes")
         load_col, _ = st.columns([2, 3])
         with load_col:
             if st.button("Load Notes ✅", use_container_width=True):
@@ -408,12 +396,6 @@ if st.session_state.page == "chat":
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # ── Chat card ──
-    # st.markdown(f"""
-    #     <div style='background:{card_bg};border:1px solid {card_border};
-    #     border-radius:16px;padding:24px 28px;backdrop-filter:blur(8px);'>
-    # """, unsafe_allow_html=True)
-
     if st.session_state.messages:
         col1, col2 = st.columns([11, 1])
         with col2:
@@ -421,13 +403,10 @@ if st.session_state.page == "chat":
                 st.session_state.messages = []
                 st.rerun()
 
-    # Welcome bubble
     if not st.session_state.messages:
         st.markdown(f"""
-            <div style='background:rgba(255,255,255,0.05);
-            border:1px solid {card_border};
-            border-radius:12px 12px 12px 4px;
-            padding:12px 16px;margin:0 25% 12px 0;'>
+            <div style='background:rgba(255,255,255,0.05);border:1px solid {card_border};
+            border-radius:12px 12px 12px 4px;padding:12px 16px;margin:0 25% 12px 0;'>
                 <p style='font-size:11px;color:{sub_color};margin:0 0 4px;'>🐙 Octo</p>
                 <p style='color:{text_color};font-size:14px;margin:0;'>
                 Hi! I'm OctoPi, your aquatic study buddy.
@@ -435,37 +414,31 @@ if st.session_state.page == "chat":
                 </p>
             </div>""", unsafe_allow_html=True)
 
-    # Message history
     for msg in st.session_state.messages:
         if msg["role"] == "user":
             st.markdown(f"""
-                <div style='background:rgba(255,255,255,0.1);
-                border:1px solid {card_border};
-                border-radius:12px 12px 4px 12px;
-                padding:12px 16px;margin:6px 0 6px 25%;text-align:right;'>
+                <div style='background:rgba(255,255,255,0.1);border:1px solid {card_border};
+                border-radius:12px 12px 4px 12px;padding:12px 16px;
+                margin:6px 0 6px 25%;text-align:right;'>
                     <p style='font-size:11px;color:{sub_color};margin:0 0 4px;'>You</p>
                     <p style='color:{text_color};font-size:14px;margin:0;'>{msg["content"]}</p>
                 </div>""", unsafe_allow_html=True)
         else:
             rendered = render_markdown(msg["content"])
             st.markdown(f"""
-                <div style='background:rgba(255,255,255,0.05);
-                border:1px solid {card_border};
-                border-radius:12px 12px 12px 4px;
-                padding:12px 16px;margin:6px 25% 6px 0;'>
-                    <p style='font-size:11px;color:{sub_color};margin:0 0 4px;'>🐙 Octo</p>
+                <div style='background:rgba(255,255,255,0.05);border:1px solid {card_border};
+                border-radius:12px 12px 12px 4px;padding:12px 16px;margin:6px 25% 6px 0;'>
+                    <p style='font-size:11px;color:{sub_color};margin:0 0 6px;'>🐙 Octo</p>
                     <div class='octo-msg'>{rendered}</div>
                 </div>""", unsafe_allow_html=True)
 
-    # Input bar
     st.markdown("<br>", unsafe_allow_html=True)
     col1, col2 = st.columns([6, 1])
     with col1:
-        question = st.text_input(
-            "q", placeholder="Ask Octo anything about your notes...",
+        question = st.text_input("q",
+            placeholder="Ask Octo anything about your notes...",
             label_visibility="collapsed",
-            key=f"input_{st.session_state.input_key}"
-        )
+            key=f"input_{st.session_state.input_key}")
     with col2:
         send = st.button("➤", use_container_width=True)
 
@@ -493,16 +466,14 @@ if st.session_state.page == "chat":
 # FLASHCARDS PAGE
 # ══════════════════════════════════════════════
 elif st.session_state.page == "flashcards":
-    st.markdown(f"<h2 style='margin:0 0 4px;'>🃏 Flashcards</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='margin:0 0 4px;'>🃏 Flashcards</h2>", unsafe_allow_html=True)
     st.markdown(f"<p style='color:{sub_color};font-size:14px;margin-bottom:24px;'>Generate cards from your notes and flip through them</p>", unsafe_allow_html=True)
 
     if not st.session_state.notes:
-        st.markdown(f"""
-            <div style='background:{card_bg};border:1px solid {card_border};
+        st.markdown(f"""<div style='background:{card_bg};border:1px solid {card_border};
             border-radius:16px;padding:24px 28px;'>
-                <p style='color:{sub_color};margin:0;'>
-                ⚠️ Please load your notes on the Chat page first.</p>
-            </div>""", unsafe_allow_html=True)
+            <p style='color:{sub_color};margin:0;'>⚠️ Please load your notes on the Chat page first.</p>
+        </div>""", unsafe_allow_html=True)
     else:
         gen_col, _ = st.columns([1, 4])
         with gen_col:
@@ -521,14 +492,22 @@ Notes:\n{st.session_state.notes}"""
                         st.error("Octo had trouble making the cards. Try again!")
 
         if st.session_state.flashcards:
-            fc    = st.session_state.flashcards[st.session_state.card_index]
-            total = len(st.session_state.flashcards)
-            idx   = st.session_state.card_index
+            fc      = st.session_state.flashcards[st.session_state.card_index]
+            total   = len(st.session_state.flashcards)
+            idx     = st.session_state.card_index
             flipped = st.session_state.card_flipped
 
             st.markdown("<br>", unsafe_allow_html=True)
-            st.markdown(f"<p style='color:{sub_color};font-size:13px;margin:0 0 6px;'>Card {idx+1} of {total}</p>", unsafe_allow_html=True)
+
+            # Progress in card
+            st.markdown(f"""
+                <div style='background:{card_bg};border:1px solid {card_border};
+                border-radius:12px;padding:14px 20px;margin-bottom:16px;'>
+                <p style='color:{sub_color};font-size:12px;margin:0 0 8px;
+                text-transform:uppercase;letter-spacing:1px;'>
+                Progress — Card {idx+1} of {total}</p>""", unsafe_allow_html=True)
             st.progress(idx / total)
+            st.markdown("</div>", unsafe_allow_html=True)
 
             bg    = "rgba(26,74,58,0.85)" if flipped else card_bg
             label = "Answer ✓" if flipped else "Question"
@@ -539,8 +518,7 @@ Notes:\n{st.session_state.notes}"""
                 <div style='background:{bg};border:1px solid {card_border};
                 border-radius:20px;min-height:220px;padding:48px 40px;
                 text-align:center;display:flex;flex-direction:column;
-                align-items:center;justify-content:center;
-                margin:12px 0 20px;transition:background 0.3s;'>
+                align-items:center;justify-content:center;margin:0 0 20px;'>
                     <p style='font-size:11px;color:{sub_color};text-transform:uppercase;
                     letter-spacing:1px;margin:0 0 16px;'>{label}</p>
                     <p style='font-size:20px;font-weight:600;color:{text_color};margin:0;'>{text}</p>
@@ -573,7 +551,7 @@ Notes:\n{st.session_state.notes}"""
                     for i, c in enumerate(st.session_state.flashcards)
                 ])
                 st.download_button(
-                    "⬇ Download Flashcards",
+                    "⬇️  Download Flashcards",
                     data=f"OCTOPI FLASHCARDS 🐙\n\n{cards_text}",
                     file_name="octopi_flashcards.txt",
                     use_container_width=True
@@ -583,26 +561,23 @@ Notes:\n{st.session_state.notes}"""
 # QUIZ PAGE
 # ══════════════════════════════════════════════
 elif st.session_state.page == "quiz":
-    st.markdown(f"<h2 style='margin:0 0 4px;'>🚀 Quiz Mode</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='margin:0 0 4px;'>🚀 Quiz Mode</h2>", unsafe_allow_html=True)
     st.markdown(f"<p style='color:{sub_color};font-size:14px;margin-bottom:24px;'>Test your knowledge with AI-generated questions</p>", unsafe_allow_html=True)
 
     if not st.session_state.notes:
-        st.markdown(f"""
-            <div style='background:{card_bg};border:1px solid {card_border};
+        st.markdown(f"""<div style='background:{card_bg};border:1px solid {card_border};
             border-radius:16px;padding:24px 28px;'>
-                <p style='color:{sub_color};margin:0;'>
-                ⚠️ Please load your notes on the Chat page first.</p>
-            </div>""", unsafe_allow_html=True)
+            <p style='color:{sub_color};margin:0;'>⚠️ Please load your notes on the Chat page first.</p>
+        </div>""", unsafe_allow_html=True)
 
     elif not st.session_state.quiz:
-        st.markdown(f"""
-            <div style='background:{card_bg};border:1px solid {card_border};
+        st.markdown(f"""<div style='background:{card_bg};border:1px solid {card_border};
             border-radius:16px;padding:28px;margin-bottom:20px;'>
-                <p style='color:{text_color};font-size:16px;font-weight:600;margin:0 0 8px;'>
-                Ready to test your knowledge? 🐙</p>
-                <p style='color:{sub_color};font-size:13px;margin:0;'>
-                Octo will generate 5 multiple choice questions from your notes.</p>
-            </div>""", unsafe_allow_html=True)
+            <p style='color:{text_color};font-size:16px;font-weight:600;margin:0 0 8px;'>
+            Ready to test your knowledge? 🐙</p>
+            <p style='color:{sub_color};font-size:13px;margin:0;'>
+            Octo will generate 5 multiple choice questions from your notes.</p>
+        </div>""", unsafe_allow_html=True)
 
         gen_col, _ = st.columns([1, 4])
         with gen_col:
@@ -653,8 +628,16 @@ Content:\n{st.session_state.notes[:1500]}"""
         st.markdown("<br>", unsafe_allow_html=True)
 
         if idx < total:
+            # Progress in card
+            st.markdown(f"""
+                <div style='background:{card_bg};border:1px solid {card_border};
+                border-radius:12px;padding:14px 20px;margin-bottom:16px;'>
+                <p style='color:{sub_color};font-size:12px;margin:0 0 8px;
+                text-transform:uppercase;letter-spacing:1px;'>
+                Question {idx+1} of {total} &nbsp;·&nbsp; Score: {st.session_state.quiz_score}/{total}</p>""",
+                unsafe_allow_html=True)
             st.progress(idx / total)
-            st.markdown(f"<p style='color:{sub_color};font-size:13px;margin:4px 0 16px;'>Question {idx+1} of {total} — Score: {st.session_state.quiz_score}/{total}</p>", unsafe_allow_html=True)
+            st.markdown("</div>", unsafe_allow_html=True)
 
             q = quiz[idx]
             st.markdown(f"""
