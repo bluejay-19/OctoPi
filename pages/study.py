@@ -61,9 +61,12 @@ btn_hover   = "rgba(255,255,255,0.15)"
 
 # ── Helpers ──
 def ask_octo(prompt, system_extra="", retries=2):
-    system = f"""You are Octo, a cheerful and friendly octopus study buddy!
+    system = f""""You are Octo, a cheerful and friendly octopus study buddy!
+Your ONLY job is to help students study using their notes.
+If a student asks something completely unrelated to studying or their notes,
+kindly redirect them back to their studies with a light octopus pun.
 Help students understand their notes in a fun and encouraging way.
-Occasionally make a light octopus pun! Keep answers clear and student friendly.
+Keep answers clear, structured and student friendly.
 Answer in whatever language the student uses.
 {system_extra}"""
     for attempt in range(retries):
@@ -124,7 +127,7 @@ def render_markdown(text):
         import re 
         text = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', text)
         text = re.sub(r'\*\*(.+?)\*\*', r'<em>\1</em>', text)
-        text = text.replace('\n', '<br')
+        text = text.replace('\n', '<br>')
         return text 
 
 # ── Global CSS ──
@@ -454,8 +457,6 @@ if st.session_state.page == "chat":
                     <div class='octo-msg'>{rendered}</div>
                 </div>""", unsafe_allow_html=True)
 
-    st.markdown("</div>", unsafe_allow_html=True)
-
     # Input bar
     st.markdown("<br>", unsafe_allow_html=True)
     col1, col2 = st.columns([6, 1])
@@ -554,7 +555,7 @@ Notes:\n{st.session_state.notes}"""
                         st.session_state.card_flipped = False
                         st.rerun()
             with c2:
-                if st.button("🔄 Flip Card", use_container_width=True):
+                if st.button("↺  Flip Card", use_container_width=True):
                     st.session_state.card_flipped = not flipped
                     st.rerun()
             with c3:
