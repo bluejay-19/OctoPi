@@ -111,3 +111,6 @@ O(1) < O(log n) < O(n) < O(n log n) < O(n²) < O(2ⁿ)
 3. Run **Quiz** (MC + T/F) → compare OctoPi's generated questions against Sections B & C
 4. Ask **Chat**: *"What is the difference between BFS and DFS?"* → verify answer quality
 5. Record results in `baseline.md`
+
+## Results: 
+Manually evaluated using 10 test questions across different topics. All 10 questions received relevant, accurate responses grounded in the uploaded notes. Octo successfully maintained personality and language consistency throughout. Quiz generation succeeded on all test runs. Flashcard quality rated as accurate and useful on all 10 test cases. Pass rate: 10/10.
