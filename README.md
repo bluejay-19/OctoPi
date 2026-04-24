@@ -93,7 +93,9 @@ OctoPi includes a `test_set.md` with 20 DSA questions across flashcard, MC, T/F,
 ## Known limitations 
 - Pressing Enter in chat doesn't trigger send
 - Scanned PDFs without text layer not supported 
-- Quiz ocassionally needs two attempts on first load 
+- Quiz ocassionally needs two attempts on first load
+- Sidebar collapse arrow not visible after collapsing - workaround is refreshing the page (clearing cookies for this site specifically). Known Streamlit CSS limitation 
+-  
 
 ---
 
@@ -102,6 +104,7 @@ OctoPi includes a `test_set.md` with 20 DSA questions across flashcard, MC, T/F,
 - Multi-document type support 
 - Persistent user session
 - Mixed question types in quiz mode 
+- Mobile friendly version 
 
 ---
 
